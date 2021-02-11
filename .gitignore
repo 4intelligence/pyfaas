@@ -1,0 +1,3 @@
+pyfaas/__pycache__/*
+credentials.json
+.vscode/*
