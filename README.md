@@ -257,9 +257,11 @@ faas_api(data_list, date_variable, date_format, model_spec, project_id, user_ema
 If everything went fine you should see the following message:
 
 
-"Request successfully received!
+"HTTP 200:
 
-Results will be sent to user@domain.com"
+Request successfully received!
+
+Results will soon be available in your Projects module"
 
 
 
