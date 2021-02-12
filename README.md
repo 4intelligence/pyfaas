@@ -58,6 +58,24 @@ pip install -r requirements.txt
 ```bash
 !pip install -r requirements.txt
 ```
+#### Reading Excel files (.xlsx)
+Note that an additional package is needed for reading .xlsx files, the **xlrd** package. It can be installed with one following:
+
+* Installing in an Anaconda environment:
+```bash
+conda install -c anaconda xlrd 
+```
+
+* Installing using PIP:
+```bash
+pip install xlrd
+```
+
+* Inside a Jupyter Notebook:
+```bash
+!pip install xlrd
+```
+The package is required only if you are reading .xlsx files or want to follow the tutorial.
 
 ### Using PyFaaS
 
