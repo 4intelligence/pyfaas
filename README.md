@@ -85,7 +85,7 @@ Now let's load the function:
 from pyfaas.faas import faas_api
 ```
 
-There are **7 basic arguments** to feed ‘faas\_api’ function.We are
+There are some **arguments** to feed ‘faas\_api’ function.We are
 going through all of them in this example and then will call the API.
 
 #### 1\) Data List \[‘data\_list’\]
@@ -197,6 +197,10 @@ the user:
   - **exclusions**: restrictions on features that should not be in the same model;
 
   - **golden_variables**: features that must be included in, at least, one model (separate or together).
+
+  - **fill_forecast**: if TRUE, it enables forecasting explanatory variables in order to avoid NAs in future values;
+
+  - **cv_summary**: determines whether "mean" ou "median" will be used to calculate the summary statistic of the accuracy measure over the CV windows.
 <br>
 
 The critical input we expect from users is the CV settings (n\_steps and
@@ -224,6 +228,8 @@ model_spec = {
               'info_crit': 'AIC',
               'exclusions': [],
               'golden_variables': [],
+              'fill_forecast': False,
+              'cv_summary': 'mean',
               'selection_methods': {
                   'lasso' : True,
                   'rf' : True,
@@ -291,7 +297,7 @@ understand the implications before changing them.*
 
 The accuracy criteria used to select the best models will be “RMSE”.
 We’re not applying log transformation on data. Moreover, we also make
-use of the **‘exclusions’** and **golden\_variables** options:
+use of the **exclusions** and **golden\_variables** options:
 
 ``` python
 ## EXAMPLE 2
@@ -306,6 +312,8 @@ model_spec = {
     'exclusions': [["fs_massa_real", "fs_rend_medio"],
                   ["fs_pop_ea", "fs_pop_des", "fs_pop_ocu"]],
     'golden_variables': ["fs_pmc", "fs_ici"],
+    'fill_forecast': True,
+    'cv_summary': 'median',
     'selection_methods': {
                           'lasso' : False,
                           'rf' : True,
@@ -339,6 +347,23 @@ some of best models contain one or both of the ‘golden’ ones:
 
 ``` python
 'golden_variables': ["fs_pmc", "fs_ici"]
+```
+
+<br>
+
+With the **fill_forecast** argument, we forecast explanatory variables in order to avoid NAs in future values. Warning: For most variables a simple univariate ARIMA is used in this process (exception: dummy variables are filled using Random Forest) which may hinder the performance of the dependent variable forecast.
+
+
+``` python
+'fill_forecast': True
+```
+
+<br>
+
+Regarding the **cv_summary** argument, should we calculate the summary statistic of the accuracy measures using the mean or the median? The mean is the most usual, however, the median is more robust to outliers and might be a better statistic when you think that the cross validation is affected by extreme situations, such as the Covid-19 pandemic.
+
+``` python
+'cv_summary': 'median'
 ```
 
 <br>

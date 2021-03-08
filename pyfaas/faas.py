@@ -60,7 +60,8 @@ user_email: str, access_key: str) -> str:
                 raise ValueError(f'date_format {date_format} not compatible with data_list. See: https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior')
 
 
-
+        if key not in data_list[key].columns:
+            raise KeyError(f'Variable {key} not found in the dataset')
        
 
         # ------ order columns to make sure data_tidy and Y are the first columns
@@ -105,6 +106,8 @@ user_email: str, access_key: str) -> str:
         'info_crit': [model_spec['info_crit']],
         'exclusions': model_spec['exclusions'],
         'golden_variables': model_spec['golden_variables'],
+        'fill_forecast': [ model_spec['fill_forecast'] ],
+        'cv_summary': [ model_spec['cv_summary']] ,
         'selection_methods': {
             'lasso' : [ model_spec['selection_methods']['lasso'] ],
             'rf' : [ model_spec['selection_methods']['rf'] ],
@@ -116,8 +119,8 @@ user_email: str, access_key: str) -> str:
         raise KeyError(f'Missing model_spec argument: {ke.args}')
     
     # ------ removing accentuation ------
-    model_spec['golden_variables'] = [unidecode(x) for x in model_spec['golden_variables']]
-    model_spec['exclusions'] = [unidecode(x) for x in model_spec['exclusions']]
+    model_spec['golden_variables'] = [unidecode(i) for i  in model_spec['golden_variables']]
+    model_spec['exclusions'] = [[unidecode(i) for i in j] for j in model_spec['exclusions']]
 
     # ------ Unite everything into a dictionary -----------------
     body = {'data_list': data_list,  
