@@ -77,6 +77,7 @@ pip install xlrd
 ```
 The package is required only if you are reading .xlsx files or want to follow the tutorial.
 
+
 ### Using PyFaaS
 
 Now let's load the function:
@@ -117,14 +118,14 @@ multiple Y’s <br>
 import pandas as pd
 
 # ------ Load dataset -----------------------------------
-df_example = pd.read_excel("./inputs/dataset_1.xlsx")
+dataset_1 = pd.read_excel("./inputs/dataset_1.xlsx")
 
 # ------ Declare the date variable and its format --------
-date_variable = 'data_tidy'
+date_variable = 'DATE_VARIABLE'
 date_format = '%Y-%m-%d'
 
 # ------ Dataframes must be passed in a dictionary
-data_list = {'fs_pim': df_example}
+data_list = {'fs_pim': dataset_1}
 ```
 
 <br>
@@ -134,20 +135,20 @@ data_list = {'fs_pim': df_example}
 ``` python
 # ------ Load datasets -----------------------------------
 
-df_example1 = pd.read_excel("./inputs/dataset_1.xlsx")
-df_example2 = pd.read_excel("./inputs/dataset_2.xlsx")
-df_example3 = pd.read_excel("./inputs/dataset_3.xlsx")
+dataset_1 = pd.read_excel("./inputs/dataset_1.xlsx")
+dataset_2 = pd.read_excel("./inputs/dataset_2.xlsx")
+dataset_3 = pd.read_excel("./inputs/dataset_3.xlsx")
 
 
 # ------ Declare the date variable and its format --------
 
-date_variable = 'data_tidy'
+date_variable = 'DATE_VARIABLE'
 date_format = '%Y-%m-%d'
 
 # ------ Dataframes must be passed in a dictionary
-data_list = {'dataset_1': df_example1,
-             'dataset_2': df_example2,
-             'dataset_3': df_example3}
+data_list = {'dataset_1': dataset_1,
+             'dataset_2': dataset_2,
+             'dataset_3': dataset_3}
 ```
 
 <br>
@@ -159,7 +160,7 @@ data_list = {'dataset_1': df_example1,
 The variable that has the dates to be used by the models.
 ```python
 # The name of the columns which contains the dates
-date_variable = 'data_tidy'
+date_variable = 'DATE_VARIABLE'
 ```
 
 
@@ -183,24 +184,42 @@ the user:
     cross-validation (if 3, 3 months ahead; if 12, 12 months ahead,
     etc.);
 
+    - n_steps should be an integer greater than or equal to 1. It is recommended that 'n_steps+n_windows-1' does not exceed 30% of the length of your data.
+
   - **n\_windows**: how many windows the size of ‘Forecast Horizon’ will
     be evaluated during cross-validation (CV);
 
-  - **seas.d**: if TRUE, it includes seasonal dummies in every
-    estimation.
+    - n_windows should be an integer greater than or equal to 1. It is recommended that 'n_steps+n_windows-1' does not exceed 30% of the length of your data.
 
-  - **log**: if TRUE apply log transformation to the data;
+  - **seas.d**: if True, it includes seasonal dummies in every
+    estimation;
+
+    - Can be set to True or False.
+
+  - **log**: if True apply log transformation to the data (only variables with all values greater than 0 will be log transformed);
+
+    - Can be set to True or False.
+
 
   - **accuracy\_crit**: which criterion to measure the accuracy of the
-    forecast during the Cross-Validation (can be MPE, MAPE, WMAPE or RMSE);
+    forecast during the Cross-Validation;
 
-  - **exclusions**: restrictions on features that should not be in the same model;
+    - Can be set to MPE, MAPE, WMAPE or RMSE.
 
-  - **golden_variables**: features that must be included in, at least, one model (separate or together).
+  - **exclusions**: restrictions on features in the same model (which variables should not be included in the same model);
 
-  - **fill_forecast**: if TRUE, it enables forecasting explanatory variables in order to avoid NAs in future values;
+    - If none, should be passed as an empty list ("exclusions = []" or "exclusions = list()"), otherwise it should receive a list containing lists of variables (see advanced options below for examples).
 
-  - **cv_summary**: determines whether "mean" ou "median" will be used to calculate the summary statistic of the accuracy measure over the CV windows.
+
+  - **golden_variables**: features that must be included in, at least, one model (separate or together);
+    - If none, should be passed as an empty list ("golden_variables = []" or "golden_variables = list()"), otherwise it should receive a list with the golden variables (see advanced options below for examples)
+
+  - **fill_forecast**: if True, it enables forecasting explanatory variables in order to avoid NAs in future values;
+    - Can be set to True or False.
+
+  - **cv_summary**: determines whether ‘mean’ ou ‘median’ will be used to calculate the summary statistic of the accuracy measure over the CV windows.
+    - Can be set to 'mean' or 'median'.
+
 <br>
 
 The critical input we expect from users is the CV settings (n\_steps and
@@ -208,21 +227,24 @@ n\_windows). In this example, we set our modeling algorithm to perform a
 CV, which will evaluate forecasts 1 step ahead (‘n\_steps’), 12 times
 (‘n\_windows’).
 
-In this example, we keep other specifications at their default values.
-The accuracy criteria used to select the best models will be “MAPE”.
-We’ll be using data with log transformation, and proper seasonal
-dummies will be used in every estimation. Moreover, we avoid
-multicollinearity issues in linear models and apply three distinct
-methods of feature selection. In the last section of this file, we
-present more advanced settings examples.
 
 ``` python
 ## EXAMPLE 1
 model_spec = {
-              'log': True,
-              'seas.d': True,
               'n_steps': 3,
               'n_windows': 6,
+              }
+```
+
+If the user chooses not to specify the remaining parameters in the model_spec, we will use the default settings (see below). With the default settings we’ll log transform the data and use proper seasonal dummies in every estimation. The accuracy criteria used to select the best models will be 'MAPE', and they will be summarized using the 'mean' across the CV windows. Missing in explanatory variables in the future values will not be filled, and we will use all three feature selection methods available - Lasso, Random Forest and Correlation, while avoiding collinearity among explanatory variables in a model.
+
+``` python
+## Default settings
+model_spec = {
+              'n_steps': user_input,
+              'n_windows': user_input,
+              'log': True,
+              'seas.d': True,
               'n_best': 25,
               'accuracy_crit': 'MAPE',
               'info_crit': 'AIC',
@@ -271,8 +293,15 @@ access_key = "User access key"
 
 #### 8\) Send job request
 
-Everything looks nice? Great\! Now you just have to send **FaaS API**
-request:
+Wants to make sure everything is alright? Though not necessary, you can validate your request beforehand by using the following function:
+
+``` python
+validate_request(data_list, date_variable, date_format, model_spec, project_id, user_email, access_key)
+```
+
+It will return a message indicating your specifications are in order or it will point out to the arguments that need adjustment.
+
+Or you can simply send your **FaaS API** request. We'll take care of running the validate_request and let you know if something needs your attention before we can proceed. If everything is in order, we'll automatically send the request, and you will see a message with the status of your request in your console.
 
 ``` python
 faas_api(data_list, date_variable, date_format, model_spec, project_id, user_email, access_key)
@@ -282,7 +311,6 @@ If everything went fine you should see the following message:
 
 
 "HTTP 200:
-
 Request successfully received!
 
 Results will soon be available in your Projects module"
@@ -367,6 +395,7 @@ Regarding the **cv_summary** argument, should we calculate the summary statistic
 ```
 
 <br>
+
 
 The **selection\_methods** determine feature selection algorithms that
 will be used when it comes to big datasets (one with a large number of
