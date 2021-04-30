@@ -112,7 +112,7 @@ access_key: str, skip_validation: bool, extension:str) -> str:
             'model_spec': model_spec,
             'user_email': [user_email],
             'project_id': [project_id],
-            'data_variable': [date_variable],
+            'date_variable': [date_variable],
             'date_format': [date_format]
             }
     
