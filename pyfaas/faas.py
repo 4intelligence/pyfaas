@@ -129,9 +129,10 @@ access_key: str, skip_validation: bool, extension:str) -> str:
     def send_request(extension):
         if extension == 'validate':
 
-            return requests.post(url, {'body': zipped_body}, headers=headers) 
-
-        return requests.post(url, {'body': zipped_body, 'skip_validation': skip_validation}, headers=headers) 
+            return requests.post(url, {'body': zipped_body}, headers=headers, timeout=1200) 
+        else:
+                
+                return requests.post(url, {'body': zipped_body, 'skip_validation': skip_validation}, headers=headers, timeout=1200) 
 
     for _ in range(5):
         r = send_request(extension)
@@ -148,7 +149,7 @@ access_key: str, skip_validation: bool, extension:str) -> str:
 def validate_request(data_list: Dict[str, pd.DataFrame], 
 date_variable: str, date_format: str, 
 model_spec: dict, project_id: str, 
-user_email: str, access_key: str, skip_validation: bool = True):
+user_email: str, access_key: str, skip_validation: bool = False):
     '''
 
     This function directs the _build_call function to the validation API
@@ -209,11 +210,14 @@ user_email: str, access_key: str, skip_validation: bool = False) -> str:
     '''
     req = _build_call(data_list, date_variable, date_format, model_spec, project_id, 
     user_email, access_key, skip_validation, 'cluster')
-
+    api_responde = json.loads(req.text)
     if req.status_code in [200, 201, 202]:
 
         print(f"HTTP: {req.status_code}: Request successfully received!\nResults will soon be available in your Projects module")
-    
+        
+        if api_response['status'] == 'Warnings':
+            print(api_response['info']['warning_list'])    
+
     else:
-        raise Exception(f'Something went wrong!\nStatus code: {req.status_code}.\n{req.text}')
+        raise Exception(f'Something went wrong!\nStatus code: {req.status_code}.\n{json.dumps(api_response, indent=2)}')
     
